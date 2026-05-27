@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Inventario{% endblock %}
+{% block nav_inventario %}active{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left"><h1><i class="fas fa-boxes-stacked"></i> Inventario</h1><p>{{ total_productos }} productos - {{ stock_bajo }} con stock bajo</p></div>
+  <a href="{% url 'inventario:producto_create' %}" class="btn btn-primary"><i class="fas fa-plus"></i> Nuevo Producto</a>
+</div>
+<div class="card">
+  <div class="card-header">
+    <span class="card-title"><i class="fas fa-box"></i> Productos</span>
+    <form method="get" style="display:flex;gap:8px;">
+      <input type="text" name="q" value="{{ request.GET.q }}" class="form-control" placeholder="Buscar..." style="width:200px;">
+      <select name="categoria" class="form-control" style="width:160px;">
+        <option value="">Todas las categorias</option>
+        {% for c in categorias %}<option value="{{ c.id }}" {% if request.GET.categoria == c.id|stringformat:'s' %}selected{% endif %}>{{ c.nombre }}</option>{% endfor %}
+      </select>
+      <button class="btn btn-ghost btn-sm" type="submit"><i class="fas fa-search"></i></button>
+    </form>
+  </div>
+  <div class="table-wrap">
+    <table><thead><tr><th>Codigo</th><th>Producto</th><th>Categoria</th><th>Stock</th><th>P. Venta</th><th>P. Costo</th><th></th></tr></thead>
+    <tbody>
+    {% for p in productos %}
+    <tr>
+      <td><span style="font-size:11px;color:var(--muted);">{{ p.codigo_barras|default:"—" }}</span></td>
+      <td style="font-weight:500;">{{ p.nombre }}</td>
+      <td><span class="badge badge-blue">{{ p.categoria.nombre|default:"—" }}</span></td>
+      <td><span class="badge {% if p.stock_bajo %}badge-red{% else %}badge-green{% endif %}">{% if p.stock_bajo %}<i class="fas fa-triangle-exclamation"></i> {% endif %}{{ p.stock }}</span></td>
+      <td style="color:var(--accent);font-weight:600;">Gs. {{ p.precio_venta|floatformat:0 }}</td>
+      <td style="color:var(--muted);">{% if p.precio_costo %}Gs. {{ p.precio_costo|floatformat:0 }}{% else %}—{% endif %}</td>
+      <td style="white-space:nowrap;">
+        <a href="{% url 'inventario:producto_detail' p.pk %}" class="btn btn-ghost btn-sm"><i class="fas fa-eye"></i></a>
+        <a href="{% url 'inventario:producto_update' p.pk %}" class="btn btn-ghost btn-sm"><i class="fas fa-pen"></i></a>
+      </td>
+    </tr>
+    {% empty %}<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px;">No hay productos. Agrega uno con el boton +</td></tr>{% endfor %}
+    </tbody></table>
+  </div>
+  {% if is_paginated %}
+  <div class="pagination">
+    {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}" class="page-link">Anterior</a>{% endif %}
+    <span class="page-link active">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}" class="page-link">Siguiente</a>{% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

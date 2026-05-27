@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}Cliente{% endblock %}
+{% block nav_clientes %}active{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left"><h1><i class="fas fa-user-plus"></i> {% if object %}Editar Cliente{% else %}Nuevo Cliente{% endif %}</h1></div>
+  <a href="{% url 'clientes:cliente_list' %}" class="btn btn-ghost"><i class="fas fa-arrow-left"></i> Volver</a>
+</div>
+<div class="card" style="max-width:680px;">
+  <div class="card-body">
+    <form method="post">{% csrf_token %}
+      {% for field in form %}
+      <div class="form-group" style="margin-bottom:14px;"><label>{{ field.label }}</label>{{ field }}{% if field.errors %}<div style="color:var(--red);font-size:12px;">{{ field.errors.0 }}</div>{% endif %}</div>
+      {% endfor %}
+      <div style="display:flex;gap:10px;margin-top:8px;">
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar</button>
+        <a href="{% url 'clientes:cliente_list' %}" class="btn btn-ghost">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

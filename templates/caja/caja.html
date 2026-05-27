@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}Caja{% endblock %}
+{% block nav_caja %}active{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left"><h1><i class="fas fa-wallet"></i> Caja</h1><p>Control de ingresos y egresos</p></div>
+  <button onclick="document.getElementById('modal-caja').style.display='flex'" class="btn btn-primary"><i class="fas fa-plus"></i> Registrar Movimiento</button>
+</div>
+<div class="stats-grid stats-grid-3">
+  <div class="stat-card"><div class="stat-icon si-green"><i class="fas fa-arrow-trend-up"></i></div><div><div class="stat-label">Ingresos</div><div class="stat-value">Gs. {{ total_ingresos|floatformat:0 }}</div></div></div>
+  <div class="stat-card"><div class="stat-icon si-red"><i class="fas fa-arrow-trend-down"></i></div><div><div class="stat-label">Egresos</div><div class="stat-value">Gs. {{ total_egresos|floatformat:0 }}</div></div></div>
+  <div class="stat-card"><div class="stat-icon si-yellow"><i class="fas fa-scale-balanced"></i></div><div><div class="stat-label">Saldo</div><div class="stat-value">Gs. {{ saldo|floatformat:0 }}</div></div></div>
+</div>
+<div class="card">
+  <div class="card-header"><span class="card-title"><i class="fas fa-arrows-up-down"></i> Movimientos</span></div>
+  <div class="table-wrap">
+    <table><thead><tr><th>Tipo</th><th>Descripcion</th><th>Monto</th><th>Fecha</th></tr></thead>
+    <tbody>
+    {% for m in movimientos %}
+    <tr>
+      <td><span class="badge {% if m.tipo == 'ingreso' %}badge-green{% else %}badge-red{% endif %}"><i class="fas fa-arrow-{% if m.tipo == 'ingreso' %}up{% else %}down{% endif %}"></i> {{ m.get_tipo_display }}</span></td>
+      <td>{{ m.descripcion }}</td>
+      <td style="color:{% if m.tipo == 'ingreso' %}var(--green){% else %}var(--red){% endif %};font-weight:600;">Gs. {{ m.monto|floatformat:0 }}</td>
+      <td style="color:var(--muted);font-size:12px;">{{ m.fecha|date:"d/m/Y H:i" }}</td>
+    </tr>
+    {% empty %}<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px;">Sin movimientos</td></tr>{% endfor %}
+    </tbody></table>
+  </div>
+</div>
+<!-- Modal Movimiento -->
+<div id="modal-caja" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(3px);">
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:26px;width:440px;max-width:95vw;">
+    <div style="font-size:16px;font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:8px;"><i class="fas fa-money-bill" style="color:var(--accent);"></i> Registrar Movimiento</div>
+    <form method="post" action="{% url 'caja:registrar' %}">
+      {% csrf_token %}
+      <div class="form-group" style="margin-bottom:14px;"><label>Tipo</label><select name="tipo" class="form-control"><option value="ingreso">Ingreso</option><option value="egreso">Egreso / Gasto</option></select></div>
+      <div class="form-group" style="margin-bottom:14px;"><label>Monto (Gs.)</label><input type="number" name="monto" class="form-control" placeholder="0" required></div>
+      <div class="form-group" style="margin-bottom:20px;"><label>Descripcion</label><input type="text" name="descripcion" class="form-control" placeholder="Ej: Pago proveedor, gastos..."></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button type="button" onclick="document.getElementById('modal-caja').style.display='none'" class="btn btn-ghost">Cancelar</button>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

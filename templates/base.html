@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Ferretería FG{% endblock %} – Sistema</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a class="navbar-brand" href="{% url 'ventas:dashboard' %}">
+    <div class="brand-icon"><i class="fas fa-hammer"></i></div>
+    <div>
+      <div class="brand-name">Ferretería FG</div>
+      <div class="brand-sub">Sistema de Gestión</div>
+    </div>
+  </a>
+  <div class="navbar-right">
+    <span style="font-size:12px;color:var(--muted);" id="nav-clock"></span>
+    <a href="{% url 'usuarios:perfil' %}" class="nav-user">
+      <div class="nav-avatar">{{ request.user.username|upper|slice:":2" }}</div>
+      <span>{{ request.user.get_full_name|default:request.user.username }}</span>
+    </a>
+    <form method="post" action="{% url 'logout' %}" style="margin:0;">
+      {% csrf_token %}
+      <button type="submit" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Salir</button>
+    </form>
+  </div>
+</nav>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-section">Principal</div>
+    <a href="{% url 'ventas:dashboard' %}" class="sidebar-item {% block nav_dashboard %}{% endblock %}">
+      <span class="si"><i class="fas fa-chart-pie"></i></span> Dashboard
+    </a>
+    <a href="{% url 'ventas:pos' %}" class="sidebar-item {% block nav_pos %}{% endblock %}">
+      <span class="si"><i class="fas fa-cash-register"></i></span> Nueva Venta
+    </a>
+    <a href="{% url 'ventas:venta_list' %}" class="sidebar-item {% block nav_ventas %}{% endblock %}">
+      <span class="si"><i class="fas fa-receipt"></i></span> Historial Ventas
+    </a>
+
+    <div class="sidebar-section">Gestión</div>
+    <a href="{% url 'inventario:producto_list' %}" class="sidebar-item {% block nav_inventario %}{% endblock %}">
+      <span class="si"><i class="fas fa-boxes-stacked"></i></span> Inventario
+    </a>
+    <a href="{% url 'clientes:cliente_list' %}" class="sidebar-item {% block nav_clientes %}{% endblock %}">
+      <span class="si"><i class="fas fa-users"></i></span> Clientes
+    </a>
+    <a href="{% url 'proveedores:proveedor_list' %}" class="sidebar-item {% block nav_proveedores %}{% endblock %}">
+      <span class="si"><i class="fas fa-truck"></i></span> Proveedores
+    </a>
+    <a href="{% url 'compras:compra_list' %}" class="sidebar-item {% block nav_compras %}{% endblock %}">
+      <span class="si"><i class="fas fa-cart-flatbed"></i></span> Compras
+    </a>
+    <a href="{% url 'caja:caja' %}" class="sidebar-item {% block nav_caja %}{% endblock %}">
+      <span class="si"><i class="fas fa-wallet"></i></span> Caja
+    </a>
+
+    <div class="sidebar-section">Informes</div>
+    <a href="{% url 'reportes:ventas' %}" class="sidebar-item {% block nav_reportes %}{% endblock %}">
+      <span class="si"><i class="fas fa-chart-line"></i></span> Reportes
+    </a>
+    <a href="{% url 'inventario:stock_bajo' %}" class="sidebar-item">
+      <span class="si"><i class="fas fa-triangle-exclamation"></i></span> Stock Bajo
+    </a>
+
+    <div class="sidebar-bottom">
+      <div class="sidebar-section">Sistema</div>
+      <a href="/admin/" class="sidebar-item">
+        <span class="si"><i class="fas fa-gear"></i></span> Panel Admin
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main-content">
+    {% if messages %}
+      {% for msg in messages %}
+        <div class="alert alert-{{ msg.tags|default:'success' }}">
+          {% if msg.tags == 'error' %}<i class="fas fa-circle-xmark"></i>{% else %}<i class="fas fa-circle-check"></i>{% endif %}
+          {{ msg }}
+        </div>
+      {% endfor %}
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+</div>
+
+<script>
+  function tick(){ document.getElementById('nav-clock').textContent = new Date().toLocaleString('es-PY'); }
+  setInterval(tick,1000); tick();
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

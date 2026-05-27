@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block nav_dashboard %}active{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1><i class="fas fa-chart-pie"></i> Dashboard</h1>
+    <p>Bienvenido, {{ request.user.get_full_name|default:request.user.username }}</p>
+  </div>
+  <a href="{% url 'ventas:pos' %}" class="btn btn-primary"><i class="fas fa-plus"></i> Nueva Venta</a>
+</div>
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon si-yellow"><i class="fas fa-cart-shopping"></i></div>
+    <div><div class="stat-label">Ventas Hoy</div><div class="stat-value">{{ ventas_hoy }}</div><div class="stat-sub">Gs. {{ ingresos_hoy|floatformat:0 }}</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon si-green"><i class="fas fa-money-bill-trend-up"></i></div>
+    <div><div class="stat-label">Ingresos Hoy</div><div class="stat-value">Gs. {{ ingresos_hoy|floatformat:0 }}</div><div class="stat-sub">Total cobrado</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon si-blue"><i class="fas fa-boxes-stacked"></i></div>
+    <div><div class="stat-label">Productos</div><div class="stat-value">{{ total_productos }}</div><div class="stat-sub">{{ total_clientes }} clientes</div></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon si-red"><i class="fas fa-triangle-exclamation"></i></div>
+    <div><div class="stat-label">Stock Bajo</div><div class="stat-value">{{ stock_bajo }}</div><div class="stat-sub">Necesitan reposición</div></div>
+  </div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title"><i class="fas fa-clock-rotate-left"></i> Últimas Ventas</span>
+      <a href="{% url 'ventas:venta_list' %}" class="btn btn-ghost btn-sm">Ver todo <i class="fas fa-arrow-right"></i></a>
+    </div>
+    <table><thead><tr><th>#</th><th>Cliente</th><th>Total</th><th>Pago</th></tr></thead>
+    <tbody>
+    {% for v in ultimas_ventas %}
+    <tr>
+      <td><span class="badge badge-yellow">{{ v.numero }}</span></td>
+      <td>{{ v.cliente.nombre|default:"Consumidor Final" }}</td>
+      <td style="color:var(--green);font-weight:600;">Gs. {{ v.total|floatformat:0 }}</td>
+      <td><span class="badge badge-blue">{{ v.get_forma_pago_display }}</span></td>
+    </tr>
+    {% empty %}<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px;">Sin ventas aún</td></tr>{% endfor %}
+    </tbody></table>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title"><i class="fas fa-circle-exclamation"></i> Stock Bajo</span>
+      <a href="{% url 'inventario:stock_bajo' %}" class="btn btn-ghost btn-sm">Ver todo <i class="fas fa-arrow-right"></i></a>
+    </div>
+    <table><thead><tr><th>Producto</th><th>Stock</th><th>Precio</th></tr></thead>
+    <tbody>
+    {% for p in productos_stock_bajo %}
+    <tr>
+      <td>{{ p.nombre }}</td>
+      <td><span class="badge badge-red"><i class="fas fa-triangle-exclamation"></i> {{ p.stock }}</span></td>
+      <td style="color:var(--accent);">Gs. {{ p.precio_venta|floatformat:0 }}</td>
+    </tr>
+    {% empty %}<tr><td colspan="3" style="text-align:center;color:var(--muted);padding:20px;">Sin alertas</td></tr>{% endfor %}
+    </tbody></table>
+  </div>
+</div>
+{% endblock %}

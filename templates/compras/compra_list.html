@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Compras{% endblock %}
+{% block nav_compras %}active{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left"><h1><i class="fas fa-cart-flatbed"></i> Compras a Proveedores</h1></div>
+</div>
+<div class="card">
+  <div class="card-header"><span class="card-title"><i class="fas fa-list"></i> Ordenes de Compra</span></div>
+  <div class="table-wrap">
+    <table><thead><tr><th>#</th><th>Proveedor</th><th>Total</th><th>Estado</th><th>Fecha</th><th></th></tr></thead>
+    <tbody>
+    {% for c in compras %}
+    <tr>
+      <td><span class="badge badge-yellow">{{ c.numero }}</span></td>
+      <td style="font-weight:500;">{{ c.proveedor.nombre }}</td>
+      <td style="color:var(--accent);font-weight:600;">Gs. {{ c.total|floatformat:0 }}</td>
+      <td><span class="badge {% if c.estado == 'recibida' %}badge-green{% elif c.estado == 'anulada' %}badge-red{% else %}badge-yellow{% endif %}">{{ c.get_estado_display }}</span></td>
+      <td style="color:var(--muted);font-size:12px;">{{ c.fecha|date:"d/m/Y" }}</td>
+      <td><a href="{% url 'compras:compra_detail' c.pk %}" class="btn btn-ghost btn-sm"><i class="fas fa-eye"></i></a></td>
+    </tr>
+    {% empty %}<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px;">No hay compras registradas</td></tr>{% endfor %}
+    </tbody></table>
+  </div>
+</div>
+{% endblock %}

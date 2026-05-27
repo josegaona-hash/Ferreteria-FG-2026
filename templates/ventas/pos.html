@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% block title %}Nueva Venta{% endblock %}
+{% block nav_pos %}active{% endblock %}
+{% block extra_css %}
+<style>
+.pos-grid{display:grid;grid-template-columns:1fr 320px;gap:20px;}
+.suggestions{background:var(--bg);border:1px solid var(--border);border-radius:10px;display:none;overflow:hidden;margin-top:4px;max-height:200px;overflow-y:auto;}
+.sug-item{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s;}
+.sug-item:last-child{border-bottom:none;}.sug-item:hover{background:var(--hover);}
+.sug-name{font-size:13px;font-weight:500;}.sug-meta{font-size:11px;color:var(--muted);}
+.sug-price{color:var(--accent);font-weight:700;font-size:13px;white-space:nowrap;}
+.summary-panel{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:14px;position:sticky;top:80px;}
+.sum-title{font-weight:700;font-size:15px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.sum-row{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);}
+.sum-total{display:flex;justify-content:space-between;font-size:22px;font-weight:700;color:var(--accent);padding-top:12px;border-top:1px solid var(--border);}
+.pos-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05);}
+.pos-row:last-child{border-bottom:none;}.pos-name{flex:1;font-size:13px;font-weight:500;}
+.pos-stotal{min-width:110px;text-align:right;font-weight:600;color:var(--green);font-size:13px;}
+@media(max-width:900px){.pos-grid{grid-template-columns:1fr;}}
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1><i class="fas fa-cash-register"></i> Nueva Venta</h1>
+    <p>Registra los productos y finaliza la venta</p>
+  </div>
+</div>
+<div class="pos-grid">
+  <div class="card" style="padding:20px;">
+    <div class="form-row">
+      <div class="form-group" style="flex:2;">
+        <label><i class="fas fa-barcode"></i> Buscar Producto</label>
+        <input type="text" id="pos-q" class="form-control" placeholder="Nombre o codigo de barras...">
+        <div class="suggestions" id="sug-list"></div>
+      </div>
+      <div class="form-group">
+        <label><i class="fas fa-user"></i> Cliente</label>
+        <select id="pos-cli" class="form-control">
+          <option value="">Consumidor Final</option>
+          {% for c in clientes %}<option value="{{ c.id }}">{{ c.nombre }}</option>{% endfor %}
+        </select>
+      </div>
+    </div>
+    <div id="pos-list"><div class="empty-state"><i class="fas fa-cart-shopping"></i>Busca un producto para agregar</div></div>
+  </div>
+  <div class="summary-panel">
+    <div class="sum-title"><i class="fas fa-file-invoice-dollar" style="color:var(--accent);margin-right:6px;"></i>Resumen</div>
+    <div class="sum-row"><span>Subtotal</span><span id="p-sub">Gs. 0</span></div>
+    <div class="sum-row"><span>IVA (10%)</span><span id="p-iva">Gs. 0</span></div>
+    <div class="sum-total"><span>TOTAL</span><span id="p-tot">Gs. 0</span></div>
+    <div class="form-group">
+      <label>Forma de Pago</label>
+      <select id="pos-pago" class="form-control">
+        <option value="contado">Contado</option><option value="tarjeta">Tarjeta</option>
+        <option value="transferencia">Transferencia</option><option value="credito">Credito</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Monto Recibido (Gs.)</label>
+      <input type="number" id="pos-rec" class="form-control" placeholder="0" oninput="calcVuelto()">
+    </div>
+    <div class="sum-row"><span>Vuelto</span><span id="p-vuelto" style="font-weight:700;color:var(--green);">Gs. 0</span></div>
+    <button class="btn btn-primary btn-block btn-lg" onclick="finalizarVenta()"><i class="fas fa-check-circle"></i> Finalizar Venta</button>
+    <button class="btn btn-ghost btn-block" onclick="limpiarVenta()"><i class="fas fa-trash"></i> Limpiar</button>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+let carrito=[];
+const csrf='{{ csrf_token }}';
+document.getElementById('pos-q').addEventListener('input',posSearch);
+document.getElementById('pos-q').addEventListener('keydown',e=>{if(e.key==='Escape')hideSug();});
+async function posSearch(){
+  const q=document.getElementById('pos-q').value.trim();
+  const sug=document.getElementById('sug-list');
+  if(!q){sug.style.display='none';return;}
+  const res=await fetch(`{% url 'ventas:buscar_producto' %}?q=${encodeURIComponent(q)}`);
+  const data=await res.json();
+  if(!data.productos.length){sug.style.display='none';return;}
+  sug.style.display='block';
+  sug.innerHTML=data.productos.map(p=>`<div class="sug-item" onclick="addToCart(${p.id},\`${p.nombre}\`,${p.precio},${p.stock})"><div><div class="sug-name">${p.nombre}</div><div class="sug-meta">${p.codigo||'Sin codigo'} - Stock: ${p.stock}</div></div><div class="sug-price">Gs. ${p.precio.toLocaleString('es-PY')}</div></div>`).join('');
+}
+function hideSug(){document.getElementById('sug-list').style.display='none';}
+function addToCart(id,nombre,precio,stock){
+  if(stock<=0){alert('Sin stock');return;}
+  const ex=carrito.find(i=>i.id===id);
+  if(ex){if(ex.qty>=ex.stock){alert('Stock maximo');return;}ex.qty++;}
+  else carrito.push({id,nombre,precio,stock,qty:1});
+  document.getElementById('pos-q').value='';hideSug();renderCart();
+}
+function renderCart(){
+  const el=document.getElementById('pos-list');
+  if(!carrito.length){el.innerHTML='<div class="empty-state"><i class="fas fa-cart-shopping"></i>Busca un producto para agregar</div>';updateTotals();return;}
+  el.innerHTML=carrito.map((item,i)=>`<div class="pos-row"><div class="pos-name">${item.nombre}</div><input type="number" min="1" max="${item.stock}" value="${item.qty}" class="form-control" style="width:60px;text-align:center;padding:6px 8px;" onchange="setQty(${i},this.value)"><div class="pos-stotal">Gs. ${(item.precio*item.qty).toLocaleString('es-PY')}</div><button class="btn btn-danger btn-sm" onclick="removeItem(${i})"><i class="fas fa-xmark"></i></button></div>`).join('');
+  updateTotals();
+}
+function setQty(i,v){carrito[i].qty=Math.min(parseInt(v)||1,carrito[i].stock);renderCart();}
+function removeItem(i){carrito.splice(i,1);renderCart();}
+function updateTotals(){
+  const sub=carrito.reduce((a,i)=>a+i.precio*i.qty,0);
+  document.getElementById('p-sub').textContent='Gs. '+sub.toLocaleString('es-PY');
+  document.getElementById('p-iva').textContent='Gs. '+Math.round(sub/11).toLocaleString('es-PY');
+  document.getElementById('p-tot').textContent='Gs. '+sub.toLocaleString('es-PY');
+  calcVuelto();
+}
+function calcVuelto(){
+  const tot=carrito.reduce((a,i)=>a+i.precio*i.qty,0);
+  const rec=parseFloat(document.getElementById('pos-rec').value)||0;
+  const v=rec-tot;const el=document.getElementById('p-vuelto');
+  el.textContent='Gs. '+(v>=0?v:0).toLocaleString('es-PY');
+  el.style.color=v<0?'var(--red)':'var(--green)';
+}
+async function finalizarVenta(){
+  if(!carrito.length){alert('Agrega productos');return;}
+  const items=carrito.map(i=>({producto_id:i.id,cantidad:i.qty}));
+  const cliId=document.getElementById('pos-cli').value;
+  const pago=document.getElementById('pos-pago').value;
+  const res=await fetch('{% url "ventas:crear_venta" %}',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf},body:JSON.stringify({items,cliente_id:cliId||null,forma_pago:pago})});
+  const data=await res.json();
+  if(data.ok){alert('Venta '+data.numero+' registrada por Gs. '+data.total.toLocaleString('es-PY'));limpiarVenta();}
+  else alert('Error: '+data.error);
+}
+function limpiarVenta(){carrito=[];document.getElementById('pos-rec').value='';renderCart();}
+</script>
+{% endblock %}

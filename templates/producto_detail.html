@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}{{ object.nombre }}{% endblock %}
+{% block nav_inventario %}active{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1><i class="fas fa-box"></i> {{ object.nombre }}</h1>
+    <p>{{ object.categoria.nombre|default:"Sin categoría" }}</p>
+  </div>
+  <div style="display:flex;gap:10px;">
+    <a href="{% url 'inventario:producto_update' object.pk %}" class="btn btn-primary"><i class="fas fa-pen"></i> Editar</a>
+    <a href="{% url 'inventario:producto_list' %}" class="btn btn-ghost"><i class="fas fa-arrow-left"></i> Volver</a>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+  <div class="card">
+    <div class="card-header"><span class="card-title"><i class="fas fa-info-circle"></i> Datos del Producto</span></div>
+    <div class="card-body">
+      <div style="display:grid;gap:12px;">
+        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;">
+          <span style="color:var(--muted);">Código de barras</span><span>{{ object.codigo_barras|default:"—" }}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;">
+          <span style="color:var(--muted);">Código interno</span><span>{{ object.codigo_interno|default:"—" }}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;">
+          <span style="color:var(--muted);">Precio de venta</span>
+          <span style="color:var(--accent);font-weight:700;">Gs. {{ object.precio_venta|floatformat:0 }}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;">
+          <span style="color:var(--muted);">Precio de costo</span>
+          <span>Gs. {{ object.precio_costo|floatformat:0 }}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;">
+          <span style="color:var(--muted);">Stock actual</span>
+          <span class="badge {% if object.stock_bajo %}badge-red{% else %}badge-green{% endif %}">
+            {% if object.stock_bajo %}<i class="fas fa-triangle-exclamation"></i>{% endif %}
+            {{ object.stock }} unidades
+          </span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:10px 0;font-size:13px;">
+          <span style="color:var(--muted);">Stock mínimo</span><span>{{ object.stock_minimo }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><span class="card-title"><i class="fas fa-clock-rotate-left"></i> Últimos Movimientos</span></div>
+    <table>
+      <thead><tr><th>Tipo</th><th>Cantidad</th><th>Fecha</th></tr></thead>
+      <tbody>
+      {% for m in movimientos %}
+      <tr>
+        <td><span class="badge {% if m.tipo == 'entrada' %}badge-green{% elif m.tipo == 'salida' %}badge-red{% else %}badge-yellow{% endif %}">{{ m.get_tipo_display }}</span></td>
+        <td>{{ m.cantidad }}</td>
+        <td style="color:var(--muted);font-size:12px;">{{ m.fecha|date:"d/m/Y H:i" }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="3" style="text-align:center;color:var(--muted);padding:20px;">Sin movimientos</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
