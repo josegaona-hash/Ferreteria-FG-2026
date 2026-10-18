@@ -1,13 +1,14 @@
 from django.db import models
 from django.contrib.auth.models import User
+from apps.empresas.models import ModeloEmpresa
 
-class Compra(models.Model):
+class Compra(ModeloEmpresa):
     ESTADO_CHOICES = [
         ('pendiente', 'Pendiente'),
         ('recibida', 'Recibida'),
         ('anulada', 'Anulada'),
     ]
-    numero = models.CharField(max_length=20, unique=True, blank=True)
+    numero = models.CharField(max_length=20, blank=True)
     proveedor = models.ForeignKey('proveedores.Proveedor', on_delete=models.PROTECT, related_name='compras')
     fecha = models.DateTimeField(auto_now_add=True)
     fecha_entrega = models.DateField(null=True, blank=True)
@@ -20,14 +21,18 @@ class Compra(models.Model):
         verbose_name = 'Compra'
         verbose_name_plural = 'Compras'
         ordering = ['-fecha']
+        constraints = [
+            models.UniqueConstraint(fields=['empresa', 'numero'], name='compra_numero_unico_por_empresa'),
+        ]
 
     def __str__(self):
         return f"Compra #{self.numero or self.id}"
 
     def save(self, *args, **kwargs):
         if not self.numero:
-            last = Compra.objects.order_by('-id').first()
-            n = (last.id + 1) if last else 1
+            # La numeración es independiente para cada empresa
+            ultima = Compra.objects.filter(empresa_id=self.empresa_id).exclude(numero='').order_by('-id').first()
+            n = int(ultima.numero[1:]) + 1 if ultima else 1
             self.numero = f"C{n:06d}"
         super().save(*args, **kwargs)
 

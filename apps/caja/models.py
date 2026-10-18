@@ -1,7 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
+from apps.empresas.models import ModeloEmpresa
 
-class MovimientoCaja(models.Model):
+class MovimientoCaja(ModeloEmpresa):
     TIPO_CHOICES = [('ingreso', 'Ingreso'), ('egreso', 'Egreso')]
     tipo = models.CharField(max_length=10, choices=TIPO_CHOICES)
     descripcion = models.CharField(max_length=255)

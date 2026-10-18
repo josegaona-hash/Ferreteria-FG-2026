@@ -1,6 +1,7 @@
 from django.db import models
+from apps.empresas.models import ModeloEmpresa
 
-class Cliente(models.Model):
+class Cliente(ModeloEmpresa):
     nombre = models.CharField(max_length=200)
     ruc = models.CharField(max_length=20, blank=True, db_index=True)
     telefono = models.CharField(max_length=30, blank=True)

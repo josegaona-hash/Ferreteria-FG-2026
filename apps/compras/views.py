@@ -1,16 +1,16 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, CreateView, DetailView, UpdateView
 from django.urls import reverse_lazy
 from django.contrib import messages
+from apps.empresas.mixins import EmpresaMixin
 from .models import Compra
 
-class CompraListView(LoginRequiredMixin, ListView):
+class CompraListView(EmpresaMixin, ListView):
     model = Compra
     template_name = 'compras/compra_list.html'
     context_object_name = 'compras'
     paginate_by = 20
 
-class CompraDetailView(LoginRequiredMixin, DetailView):
+class CompraDetailView(EmpresaMixin, DetailView):
     model = Compra
     template_name = 'compras/compra_detail.html'
 

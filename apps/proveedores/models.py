@@ -1,6 +1,7 @@
 from django.db import models
+from apps.empresas.models import ModeloEmpresa
 
-class Proveedor(models.Model):
+class Proveedor(ModeloEmpresa):
     nombre = models.CharField(max_length=200)
     ruc = models.CharField(max_length=20, blank=True)
     contacto = models.CharField(max_length=100, blank=True)

@@ -1,5 +1,3 @@
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, DetailView, TemplateView
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse, HttpResponse
@@ -12,42 +10,46 @@ from .models import Venta, DetalleVenta
 from apps.inventario.models import Producto
 from apps.clientes.models import Cliente
 from apps.caja.models import MovimientoCaja
+from apps.empresas.mixins import EmpresaMixin, empresa_requerida
+from apps.empresas.models import Empresa
 
 
-class DashboardView(LoginRequiredMixin, TemplateView):
+class DashboardView(EmpresaMixin, TemplateView):
     template_name = 'ventas/dashboard.html'
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         hoy = timezone.now().date()
-        ventas_hoy = Venta.objects.filter(fecha__date=hoy, estado='pagada')
+        ventas = Venta.objects.filter(empresa=self.request.empresa)
+        productos = Producto.objects.filter(empresa=self.request.empresa, activo=True)
+        ventas_hoy = ventas.filter(fecha__date=hoy, estado='pagada')
         ctx['ventas_hoy'] = ventas_hoy.count()
         ctx['ingresos_hoy'] = ventas_hoy.aggregate(t=Sum('total'))['t'] or 0
-        ctx['total_productos'] = Producto.objects.filter(activo=True).count()
-        ctx['stock_bajo'] = Producto.objects.filter(activo=True, stock__lte=5).count()
-        ctx['total_clientes'] = Cliente.objects.filter(activo=True).count()
-        ctx['ultimas_ventas'] = Venta.objects.select_related('cliente').order_by('-fecha')[:8]
-        ctx['productos_stock_bajo'] = Producto.objects.filter(activo=True, stock__lte=5).select_related('categoria')[:8]
+        ctx['total_productos'] = productos.count()
+        ctx['stock_bajo'] = productos.filter(stock__lte=5).count()
+        ctx['total_clientes'] = Cliente.objects.filter(empresa=self.request.empresa, activo=True).count()
+        ctx['ultimas_ventas'] = ventas.select_related('cliente').order_by('-fecha')[:8]
+        ctx['productos_stock_bajo'] = productos.filter(stock__lte=5).select_related('categoria')[:8]
         return ctx
 
 
-class PosView(LoginRequiredMixin, TemplateView):
+class PosView(EmpresaMixin, TemplateView):
     template_name = 'ventas/pos.html'
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['clientes'] = Cliente.objects.filter(activo=True).values('id', 'nombre')
+        ctx['clientes'] = Cliente.objects.filter(empresa=self.request.empresa, activo=True).values('id', 'nombre')
         return ctx
 
 
-class VentaListView(LoginRequiredMixin, ListView):
+class VentaListView(EmpresaMixin, ListView):
     model = Venta
     template_name = 'ventas/venta_list.html'
     context_object_name = 'ventas'
     paginate_by = 25
 
     def get_queryset(self):
-        qs = Venta.objects.select_related('cliente', 'usuario').order_by('-fecha')
+        qs = super().get_queryset().select_related('cliente', 'usuario').order_by('-fecha')
         q = self.request.GET.get('q')
         estado = self.request.GET.get('estado')
         pago = self.request.GET.get('pago')
@@ -60,7 +62,7 @@ class VentaListView(LoginRequiredMixin, ListView):
         return qs
 
 
-class VentaDetailView(LoginRequiredMixin, DetailView):
+class VentaDetailView(EmpresaMixin, DetailView):
     model = Venta
     template_name = 'ventas/venta_detail.html'
 
@@ -70,20 +72,20 @@ class VentaDetailView(LoginRequiredMixin, DetailView):
         return ctx
 
 
-@login_required
+@empresa_requerida
 def buscar_producto(request):
     q = request.GET.get('q', '').strip()
     if not q:
         return JsonResponse({'productos': []})
     productos = Producto.objects.filter(
-        activo=True, stock__gt=0
+        empresa=request.empresa, activo=True, stock__gt=0
     ).filter(Q(nombre__icontains=q) | Q(codigo_barras__icontains=q))[:10]
     data = [{'id': p.id, 'nombre': p.nombre, 'codigo': p.codigo_barras,
               'precio': float(p.precio_venta), 'stock': p.stock} for p in productos]
     return JsonResponse({'productos': data})
 
 
-@login_required
+@empresa_requerida
 @transaction.atomic
 def crear_venta(request):
     if request.method != 'POST':
@@ -94,11 +96,17 @@ def crear_venta(request):
         if not items:
             return JsonResponse({'error': 'Sin productos'}, status=400)
 
-        cliente_id = data.get('cliente_id')
+        cliente_id = data.get('cliente_id') or None
         forma_pago = data.get('forma_pago', 'contado')
+        if cliente_id and not Cliente.objects.filter(id=cliente_id, empresa=request.empresa).exists():
+            return JsonResponse({'error': 'Cliente no encontrado'}, status=400)
+
+        # Bloquea la empresa para que dos ventas simultáneas no reciban el mismo número
+        Empresa.objects.select_for_update().get(pk=request.empresa.pk)
 
         venta = Venta(
-            cliente_id=cliente_id or None,
+            empresa=request.empresa,
+            cliente_id=cliente_id,
             forma_pago=forma_pago,
             usuario=request.user,
         )
@@ -106,7 +114,7 @@ def crear_venta(request):
         total = 0
         detalles = []
         for item in items:
-            prod = Producto.objects.select_for_update().get(id=item['producto_id'], activo=True)
+            prod = Producto.objects.select_for_update().get(id=item['producto_id'], empresa=request.empresa, activo=True)
             if prod.stock < item['cantidad']:
                 return JsonResponse({'error': f'Stock insuficiente: {prod.nombre}'}, status=400)
             subtotal = int(prod.precio_venta) * item['cantidad']
@@ -125,6 +133,7 @@ def crear_venta(request):
             d['producto'].save()
 
         MovimientoCaja.objects.create(
+            empresa=request.empresa,
             tipo='ingreso',
             descripcion=f'Venta {venta.numero} – {forma_pago}',
             monto=total,

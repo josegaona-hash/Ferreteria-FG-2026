@@ -1,26 +1,26 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, CreateView, UpdateView, DetailView
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.db.models import Q
+from apps.empresas.mixins import EmpresaMixin
 from .models import Cliente
 
 
-class ClienteListView(LoginRequiredMixin, ListView):
+class ClienteListView(EmpresaMixin, ListView):
     model = Cliente
     template_name = 'clientes/cliente_list.html'
     context_object_name = 'clientes'
     paginate_by = 20
 
     def get_queryset(self):
-        qs = Cliente.objects.filter(activo=True)
+        qs = super().get_queryset().filter(activo=True)
         q = self.request.GET.get('q')
         if q:
             qs = qs.filter(Q(nombre__icontains=q) | Q(ruc__icontains=q) | Q(telefono__icontains=q))
         return qs
 
 
-class ClienteCreateView(LoginRequiredMixin, CreateView):
+class ClienteCreateView(EmpresaMixin, CreateView):
     model = Cliente
     template_name = 'clientes/cliente_form.html'
     fields = ['nombre', 'ruc', 'telefono', 'telefono2', 'email', 'direccion', 'ciudad', 'limite_credito', 'notas']
@@ -31,7 +31,7 @@ class ClienteCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class ClienteUpdateView(LoginRequiredMixin, UpdateView):
+class ClienteUpdateView(EmpresaMixin, UpdateView):
     model = Cliente
     template_name = 'clientes/cliente_form.html'
     fields = ['nombre', 'ruc', 'telefono', 'telefono2', 'email', 'direccion', 'ciudad', 'limite_credito', 'activo', 'notas']
@@ -42,7 +42,7 @@ class ClienteUpdateView(LoginRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-class ClienteDetailView(LoginRequiredMixin, DetailView):
+class ClienteDetailView(EmpresaMixin, DetailView):
     model = Cliente
     template_name = 'clientes/cliente_detail.html'
 

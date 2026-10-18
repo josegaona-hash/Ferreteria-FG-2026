@@ -1,18 +1,18 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, CreateView, UpdateView, DetailView
 from django.urls import reverse_lazy
 from django.contrib import messages
+from apps.empresas.mixins import EmpresaMixin
 from .models import Proveedor
 
 
-class ProveedorListView(LoginRequiredMixin, ListView):
+class ProveedorListView(EmpresaMixin, ListView):
     model = Proveedor
     template_name = 'proveedores/proveedor_list.html'
     context_object_name = 'proveedores'
     paginate_by = 20
 
     def get_queryset(self):
-        qs = Proveedor.objects.filter(activo=True)
+        qs = super().get_queryset().filter(activo=True)
         q = self.request.GET.get('q')
         if q:
             from django.db.models import Q
@@ -20,7 +20,7 @@ class ProveedorListView(LoginRequiredMixin, ListView):
         return qs
 
 
-class ProveedorCreateView(LoginRequiredMixin, CreateView):
+class ProveedorCreateView(EmpresaMixin, CreateView):
     model = Proveedor
     template_name = 'proveedores/proveedor_form.html'
     fields = ['nombre', 'ruc', 'contacto', 'telefono', 'email', 'direccion', 'ciudad', 'notas']
@@ -31,7 +31,7 @@ class ProveedorCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class ProveedorUpdateView(LoginRequiredMixin, UpdateView):
+class ProveedorUpdateView(EmpresaMixin, UpdateView):
     model = Proveedor
     template_name = 'proveedores/proveedor_form.html'
     fields = ['nombre', 'ruc', 'contacto', 'telefono', 'email', 'direccion', 'ciudad', 'activo', 'notas']
@@ -42,7 +42,7 @@ class ProveedorUpdateView(LoginRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-class ProveedorDetailView(LoginRequiredMixin, DetailView):
+class ProveedorDetailView(EmpresaMixin, DetailView):
     model = Proveedor
     template_name = 'proveedores/proveedor_detail.html'
 

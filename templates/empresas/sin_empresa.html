@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}Sin acceso{% endblock %}
+{% block content %}
+<div class="card" style="max-width:520px;margin:40px auto;">
+  <div class="card-body" style="text-align:center;">
+    <div style="font-size:40px;color:var(--muted);margin-bottom:12px;"><i class="fas fa-lock"></i></div>
+    <h2 style="margin-bottom:8px;">Tu usuario no tiene una empresa activa</h2>
+    <p style="color:var(--muted);font-size:13px;">
+      Puede que tu usuario no esté asignado a ninguna empresa o que la suscripción esté suspendida.
+      Comunícate con el administrador del sistema.
+    </p>
+  </div>
+</div>
+{% endblock %}
