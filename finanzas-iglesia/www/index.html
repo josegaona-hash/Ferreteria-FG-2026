@@ -288,9 +288,9 @@
 
     <!-- App Container -->
     <div id="app-container" class="hidden">
-        <div class="min-h-screen max-w-md mx-auto relative">
+        <div class="min-h-screen app-shell relative">
             <!-- Header fijo con gradiente -->
-            <div class="sticky top-0 z-30 bg-gradient-to-r from-finance-600 to-finance-800 text-white px-6 py-4 shadow-lg">
+            <div class="sticky top-0 z-30 bg-gradient-to-r from-finance-600 to-finance-800 text-white app-header shadow-lg">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <svg viewBox="0 0 512 512" class="w-10 h-10 rounded-xl shrink-0 block ring-1 ring-white/30"><use href="#logo-maletin"/></svg>
@@ -300,8 +300,12 @@
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
-                        <button id="btn-recordatorios" onclick="abrirRecordatorios()" class="hidden w-10 h-10 bg-white/20 rounded-xl items-center justify-center hover:bg-white/30 transition-colors" aria-label="Recordatorios" style="font-size:1.15rem">
-                            <svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M12 2a6.5 6.5 0 0 0-6.5 6.5v3.2c0 .6-.2 1.2-.6 1.7l-1.1 1.5A1.3 1.3 0 0 0 4.9 17h14.2a1.3 1.3 0 0 0 1.1-2.1l-1.1-1.5c-.4-.5-.6-1.1-.6-1.7V8.5A6.5 6.5 0 0 0 12 2Zm-2.9 16.5a3 3 0 0 0 5.8 0Z"/></svg>
+                        <button id="btn-mensajes" onclick="abrirMensajes()" class="relative w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center hover:bg-white/30 transition-colors" aria-label="Mensajes" style="font-size:1.15rem">
+                            <span class="msg-bell"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M12 2a6.5 6.5 0 0 0-6.5 6.5v3.2c0 .6-.2 1.2-.6 1.7l-1.1 1.5A1.3 1.3 0 0 0 4.9 17h14.2a1.3 1.3 0 0 0 1.1-2.1l-1.1-1.5c-.4-.5-.6-1.1-.6-1.7V8.5A6.5 6.5 0 0 0 12 2Zm-2.9 16.5a3 3 0 0 0 5.8 0Z"/></svg></span>
+                            <span id="msg-badge" class="msg-badge hidden">0</span>
+                        </button>
+                        <button id="btn-recordatorios" onclick="abrirRecordatorios()" class="hidden w-10 h-10 bg-white/20 rounded-xl items-center justify-center hover:bg-white/30 transition-colors" aria-label="Configurar notificaciones" style="font-size:1.15rem">
+                            <span class="msg-gear"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 0 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58ZM12 15.6a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2Z"/></svg></span>
                         </button>
                         <button onclick="toggleTheme()" class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center hover:bg-white/30 transition-colors tooltip" data-tooltip="Cambiar tema">
                             <iconify-icon id="theme-icon" icon="solar:moon-bold"></iconify-icon>
@@ -314,7 +318,7 @@
             </div>
 
             <!-- Contenido Principal -->
-            <div class="px-4 py-6 pb-24 space-y-6">
+            <div class="app-main space-y-6">
                 <!-- Página de Inicio -->
                 <div id="inicio" class="page active space-y-6">
                     <!-- Stats Cards -->
@@ -562,26 +566,27 @@
             </div>
 
             <!-- Navegación Inferior -->
-            <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-30">
-                <div class="card rounded-t-2xl rounded-b-none border-b-0 px-2 py-1 flex items-center justify-around">
-                    <button onclick="showPage('inicio')" class="nav-btn flex flex-col items-center p-3 rounded-xl text-muted-foreground" data-page="inicio">
-                        <iconify-icon icon="solar:home-2-bold" class="text-xl"></iconify-icon>
-                        <span class="text-[10px] mt-1">Inicio</span>
+            <nav class="bottom-nav">
+                <div class="bottom-nav-inner">
+                    <span id="nav-indicator" class="nav-indicator" aria-hidden="true"></span>
+                    <button onclick="showPage('inicio')" class="nav-btn" data-page="inicio">
+                        <iconify-icon icon="solar:home-2-bold"></iconify-icon>
+                        <span>Inicio</span>
                     </button>
-                    <button onclick="showPage('historial')" class="nav-btn flex flex-col items-center p-3 rounded-xl text-muted-foreground" data-page="historial">
-                        <iconify-icon icon="solar:history-bold" class="text-xl"></iconify-icon>
-                        <span class="text-[10px] mt-1">Historial</span>
+                    <button onclick="showPage('historial')" class="nav-btn" data-page="historial">
+                        <iconify-icon icon="solar:history-bold"></iconify-icon>
+                        <span>Historial</span>
                     </button>
-                    <button onclick="showPage('agregar')" class="nav-btn flex flex-col items-center p-3 rounded-xl text-muted-foreground" data-page="agregar">
-                        <iconify-icon icon="solar:add-circle-bold" class="text-xl"></iconify-icon>
-                        <span class="text-[10px] mt-1">Agregar</span>
+                    <button onclick="showPage('agregar')" class="nav-btn" data-page="agregar">
+                        <iconify-icon icon="solar:add-circle-bold"></iconify-icon>
+                        <span>Agregar</span>
                     </button>
-                    <button onclick="showPage('reportes')" class="nav-btn flex flex-col items-center p-3 rounded-xl text-muted-foreground" data-page="reportes">
-                        <iconify-icon icon="solar:chart-2-bold" class="text-xl"></iconify-icon>
-                        <span class="text-[10px] mt-1">Reportes</span>
+                    <button onclick="showPage('reportes')" class="nav-btn" data-page="reportes">
+                        <iconify-icon icon="solar:chart-2-bold"></iconify-icon>
+                        <span>Reportes</span>
                     </button>
                 </div>
-            </div>
+            </nav>
         </div>
     </div>
 
@@ -829,6 +834,7 @@
                 });
                 
                 showAlert('Ofrenda actualizada exitosamente', 'success');
+                registrarMensaje('editada', 'Ofrenda actualizada', `${tipoEditSeleccionado === 'santa-cena' ? 'Santa Cena' : 'Escuela Dominical'} · ${formatearGuaranies(monto)} · ${fechaCorta(fecha)}`, 'historial');
                 cerrarModalEdicion();
                 
                 // Recargar datos
@@ -942,9 +948,21 @@
             showPage('inicio');
             loadTheme();
             if (window.aperturaPendiente) aperturaPendiente();
+            if (window.mensajesSync) mensajesSync();
         }
 
+        const ORDEN_PAGINAS = ['inicio', 'historial', 'agregar', 'reportes'];
+        let paginaActual = 'inicio';
+
         function showPage(pageId) {
+            // Dirección de la animación según la posición en la barra inferior
+            const desde = ORDEN_PAGINAS.indexOf(paginaActual);
+            const hacia = ORDEN_PAGINAS.indexOf(pageId);
+            const app = document.getElementById('app-container');
+            app.classList.remove('nav-fwd', 'nav-back');
+            if (desde > -1 && hacia > -1 && desde !== hacia) app.classList.add(hacia > desde ? 'nav-fwd' : 'nav-back');
+            paginaActual = pageId;
+
             document.querySelectorAll('.page').forEach(p => {
                 p.classList.remove('active');
             });
@@ -952,15 +970,11 @@
             
             // Actualizar navegación
             document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('text-accent', 'bg-accent/10');
-                btn.classList.add('text-muted-foreground');
+                btn.classList.toggle('active', btn.dataset.page === pageId);
             });
-            
-            const activeBtn = document.querySelector(`.nav-btn[data-page="${pageId}"]`);
-            if (activeBtn) {
-                activeBtn.classList.remove('text-muted-foreground');
-                activeBtn.classList.add('text-accent', 'bg-accent/10');
-            }
+            const indicador = document.getElementById('nav-indicator');
+            if (indicador && hacia > -1) indicador.style.transform = `translateX(${hacia * 100}%)`;
+            window.scrollTo(0, 0);
             
             // Cargar datos según página
             if (pageId === 'inicio') cargarDatosInicio();
@@ -1059,6 +1073,7 @@
                 });
                 
                 showAlert('Ofrenda guardada exitosamente', 'success');
+                registrarMensaje('guardada', 'Ofrenda registrada', `${tipoSeleccionado === 'santa-cena' ? 'Santa Cena' : 'Escuela Dominical'} · ${formatearGuaranies(monto)} · ${fechaCorta(fecha)}`, 'historial');
                 showPage('inicio');
             } catch (error) {
                 showAlert('Error al guardar: ' + error.message, 'error');
@@ -1260,6 +1275,7 @@
         }
 
         async function eliminarOfrenda(id) {
+            const o = ofrendas.find(x => x.id === id);
             showConfirm(
                 'Eliminar Ofrenda',
                 '¿Estás seguro de eliminar esta ofrenda? Esta acción no se puede deshacer.',
@@ -1267,6 +1283,7 @@
                     try {
                         await db.collection('ofrendas').doc(id).delete();
                         showAlert('Ofrenda eliminada', 'success');
+                        if (o) registrarMensaje('eliminada', 'Ofrenda eliminada', `${o.tipo === 'santa-cena' ? 'Santa Cena' : 'Escuela Dominical'} · ${formatearGuaranies(o.monto)} · ${fechaCorta(o.fecha)}`, 'historial');
                         cargarHistorial();
                         cargarDatosInicio();
                     } catch (error) {
@@ -1521,6 +1538,7 @@
         // Botón "atrás" de Android: cierra ventanas, vuelve al inicio y recién después sale
         window.__onBack = function () {
             const abierto = id => { const el = document.getElementById(id); return el && !el.classList.contains('hidden'); };
+            if (abierto('msg-modal')) { cerrarMensajes(); return true; }
             if (abierto('rec-modal')) { cerrarRecordatorios(); return true; }
             if (abierto('confirm-modal')) { document.getElementById('confirm-cancel').click(); return true; }
             if (abierto('edit-modal')) { cerrarModalEdicion(); return true; }
@@ -1669,7 +1687,10 @@
                 if (!r) return;
                 if (!EN_APP()) { imprimirReporte(r); return; }
                 const donde = window.Android.guardarPdf(jsonReporte(r), nombreArchivoReporte(r));
-                if (donde) showAlert(`PDF guardado en ${esc(donde)}`, 'success');
+                if (donde) {
+                    showAlert(`PDF guardado en ${esc(donde)}`, 'success');
+                    registrarMensaje('pdf', 'Reporte guardado', `${r.mesNombre} ${r.year} · ${donde}`, 'reportes');
+                }
                 else showAlert('No se pudo guardar el PDF. Revisa el permiso de almacenamiento.', 'error');
             } catch (e) { console.error(e); showAlert('No se pudo guardar el PDF', 'error'); }
         }
@@ -1807,7 +1828,7 @@
 
 /* Navegación y selección */
 .nav-btn iconify-icon{display:inline-block}
-.nav-btn.text-accent iconify-icon{animation:fxBounce .5s cubic-bezier(.3,1.6,.5,1)}
+.nav-btn.active iconify-icon{animation:fxBounce .5s cubic-bezier(.3,1.6,.5,1)}
 @keyframes fxBounce{35%{transform:translateY(-4px) scale(1.15)}}
 #santa-cena-btn.border-accent,#escuela-dominical-btn.border-accent,#edit-santa-cena-btn.border-accent,#edit-escuela-dominical-btn.border-accent{animation:fxSel .4s cubic-bezier(.3,1.6,.5,1)}
 @keyframes fxSel{40%{transform:scale(.94)}}
@@ -2024,9 +2045,9 @@
         <div class="card max-w-md w-full mx-4 p-6 fade-in rec-card">
             <div class="flex justify-between items-start" style="margin-bottom:1.25rem">
                 <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 bg-finance-100 rounded-xl flex items-center justify-center text-finance-700" style="font-size:1.5rem"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M12 2a6.5 6.5 0 0 0-6.5 6.5v3.2c0 .6-.2 1.2-.6 1.7l-1.1 1.5A1.3 1.3 0 0 0 4.9 17h14.2a1.3 1.3 0 0 0 1.1-2.1l-1.1-1.5c-.4-.5-.6-1.1-.6-1.7V8.5A6.5 6.5 0 0 0 12 2Zm-2.9 16.5a3 3 0 0 0 5.8 0Z"/></svg></div>
+                    <div class="w-12 h-12 bg-finance-100 rounded-xl flex items-center justify-center text-finance-700" style="font-size:1.5rem"><svg viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 0 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58ZM12 15.6a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2Z"/></svg></div>
                     <div>
-                        <h3 class="text-xl font-bold font-display">Recordatorios</h3>
+                        <h3 class="text-xl font-bold font-display">Notificaciones</h3>
                         <p class="text-xs text-muted-foreground">Te avisan aunque la app esté cerrada</p>
                     </div>
                 </div>
@@ -2168,6 +2189,191 @@
       document.getElementById('rec-permiso').classList.toggle('hidden', R().permitidas());
   });
   if (R()) { const b = document.getElementById('btn-recordatorios'); b.classList.remove('hidden'); b.classList.add('flex'); }
+})();
+</script>
+    <!-- Modal de mensajes (campanita) -->
+    <div id="msg-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-center justify-center" onclick="if(event.target===this)cerrarMensajes()">
+        <div class="card max-w-md w-full mx-4 p-6 msg-card">
+            <div class="flex justify-between items-start" style="margin-bottom:1rem">
+                <div>
+                    <h3 class="text-xl font-bold font-display">Mensajes</h3>
+                    <p id="msg-sub" class="text-xs text-muted-foreground">Avisos y actividad reciente</p>
+                </div>
+                <button onclick="cerrarMensajes()" class="text-muted-foreground hover:text-foreground" aria-label="Cerrar">
+                    <iconify-icon icon="solar:close-circle-bold" class="text-2xl"></iconify-icon>
+                </button>
+            </div>
+            <div id="msg-lista" class="msg-lista"></div>
+            <div id="msg-acciones" class="flex gap-3" style="margin-top:1rem">
+                <button onclick="borrarMensajes()" class="btn-secondary flex-1">Borrar todo</button>
+                <button id="msg-config" onclick="cerrarMensajes();abrirRecordatorios()" class="btn-primary flex-1 hidden">Configurar</button>
+            </div>
+        </div>
+    </div>
+<style>
+/* ===== Diseño a todo el ancho (con margen) ===== */
+.app-shell{width:100%;max-width:760px;margin:0 auto}
+.app-header{padding:calc(.9rem + env(safe-area-inset-top)) 1rem .9rem;border-radius:0 0 22px 22px}
+.app-main{padding:1.25rem .75rem calc(7rem + env(safe-area-inset-bottom))}
+
+/* ===== Barra inferior flotante con transiciones ===== */
+.bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:30;max-width:760px;margin:0 auto;padding:0 .625rem calc(.625rem + env(safe-area-inset-bottom));pointer-events:none}
+.bottom-nav-inner{pointer-events:auto;position:relative;display:grid;grid-template-columns:repeat(4,1fr);padding:6px;border-radius:24px;background:var(--bg-card);border:1px solid var(--border-light);box-shadow:0 14px 34px -14px rgba(0,0,0,.45)}
+.nav-indicator{position:absolute;top:6px;bottom:6px;left:6px;width:calc((100% - 12px) / 4);border-radius:18px;background:var(--accent-soft);transition:transform .5s cubic-bezier(.3,1.25,.4,1)}
+.nav-btn{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:.6rem .25rem;border-radius:18px;color:var(--text-muted);transition:color .3s ease}
+.nav-btn iconify-icon{font-size:1.4rem;transition:transform .4s cubic-bezier(.3,1.6,.5,1)}
+.nav-btn span{font-size:11px;font-weight:500;transition:font-weight .3s,letter-spacing .3s}
+.nav-btn.active{color:var(--text-primary)}
+.nav-btn.active iconify-icon{transform:translateY(-2px) scale(1.1)}
+.nav-btn.active span{font-weight:700}
+.nav-btn:active iconify-icon{transform:scale(.88)}
+#app-container.nav-fwd .page.active{animation:navFwd .42s cubic-bezier(.2,.8,.2,1)}
+#app-container.nav-back .page.active{animation:navBack .42s cubic-bezier(.2,.8,.2,1)}
+@keyframes navFwd{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}}
+@keyframes navBack{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:none}}
+
+/* ===== Campanita y mensajes ===== */
+.msg-bell,.msg-gear{display:inline-flex;transform-origin:50% 10%}
+#btn-mensajes.ring .msg-bell{animation:msgRing 1.1s ease}
+@keyframes msgRing{10%{transform:rotate(16deg)}20%{transform:rotate(-14deg)}30%{transform:rotate(10deg)}40%{transform:rotate(-8deg)}50%{transform:rotate(4deg)}60%{transform:none}}
+.msg-gear{transform-origin:50% 50%}
+#btn-recordatorios:active .msg-gear{transform:rotate(60deg);transition:transform .3s}
+.msg-badge{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#fff;color:#292524;font-size:10px;font-weight:800;line-height:18px;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.3);animation:fxIn .35s cubic-bezier(.2,1.25,.3,1)}
+#msg-modal.flex,#rec-modal.flex{display:flex}
+#msg-modal:not(.hidden),#rec-modal:not(.hidden){animation:fxFade .25s ease both;background:rgba(0,0,0,.55)!important}
+#msg-modal:not(.hidden)>.card,#rec-modal:not(.hidden)>.card{animation:fxIn .42s cubic-bezier(.2,1.25,.3,1) both;border-radius:20px}
+.msg-card{max-height:86vh;display:flex;flex-direction:column}
+.msg-lista{overflow-y:auto;display:flex;flex-direction:column;gap:.6rem;margin:0 -.25rem;padding:0 .25rem}
+.msg-item{display:flex;gap:.75rem;align-items:flex-start;width:100%;text-align:left;border:1px solid var(--border-light);border-radius:1rem;padding:.85rem;background:var(--bg-primary);animation:fxRise .45s cubic-bezier(.2,.8,.2,1) both}
+.msg-item.nuevo{border-color:var(--border-medium);background:var(--accent-soft)}
+.msg-ico{width:2.4rem;height:2.4rem;border-radius:.75rem;background:var(--accent-soft);color:var(--text-secondary);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0}
+.msg-item.nuevo .msg-ico{background:var(--bg-card)}
+.msg-tit{font-weight:700;font-size:.875rem;display:flex;align-items:center;gap:.4rem}
+.msg-dot{width:7px;height:7px;border-radius:50%;background:var(--text-primary);flex-shrink:0}
+.msg-txt{font-size:.8rem;color:var(--text-secondary);margin-top:.15rem;line-height:1.35}
+.msg-hora{font-size:.7rem;color:var(--text-muted);margin-top:.3rem}
+.msg-vacio{text-align:center;padding:2rem 1rem;color:var(--text-muted)}
+.msg-vacio iconify-icon{font-size:2.5rem}
+</style>
+<script>
+(function(){
+  const R = () => window.Recordatorios;
+  const MAX = 60;
+  const ICO = { domingo: 'solar:wineglass-bold', reporte: 'solar:chart-2-bold', guardada: 'solar:add-circle-bold', editada: 'solar:pen-bold', eliminada: 'solar:trash-bin-trash-bold', pdf: 'solar:file-download-bold' };
+  const uid = () => (typeof currentUser !== 'undefined' && currentUser && currentUser.uid) || 'anon';
+  const clave = k => 'msgs:' + k + ':' + uid();
+  function leer(){ try { return JSON.parse(localStorage.getItem(clave('lista')) || '[]'); } catch(e){ return []; } }
+  function escribir(l){ try { localStorage.setItem(clave('lista'), JSON.stringify(l.slice(0, MAX))); } catch(e){} }
+
+  function agregar(m){
+    const l = leer();
+    if (m.id && l.some(x => x.id === m.id)) return false;
+    l.unshift(Object.assign({ id: 'm' + Date.now() + Math.floor(Math.random()*1000), t: Date.now(), leido: false }, m));
+    l.sort((a, b) => b.t - a.t);
+    escribir(l);
+    return true;
+  }
+
+  window.registrarMensaje = function(tipo, titulo, texto, accion){
+    agregar({ tipo, titulo, texto, accion, leido: true });
+    pintarBadge();
+  };
+
+  // Los recordatorios del domingo que ya sonaron se guardan como mensajes
+  function ultimoDomingoDelMes(d){ const s = new Date(d); s.setDate(s.getDate() + 7); return s.getMonth() !== d.getMonth(); }
+  function sincronizarRecordatorios(){
+    if (!R()) return 0;
+    let c = {}; try { c = JSON.parse(R().config()); } catch(e){}
+    const sem = c.semanal || { on: true, h: 8, m: 0 }, mes = c.mensual || { on: true, h: 11, m: 30 };
+    const ahora = new Date();
+    let desde = parseInt(localStorage.getItem(clave('check')) || '0', 10);
+    if (!desde) desde = ahora.getTime() - 14 * 864e5;
+    const d = new Date(desde); d.setHours(0, 0, 0, 0);
+    while (d.getDay() !== 0) d.setDate(d.getDate() + 1);
+    let nuevos = 0;
+    for (; d <= ahora; d.setDate(d.getDate() + 7)) {
+      const dia = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const ts = (h, m) => { const x = new Date(d); x.setHours(h, m, 0, 0); return x.getTime(); };
+      const ws = ts(sem.h, sem.m), ms = ts(mes.h, mes.m);
+      if (sem.on && ws > desde && ws <= ahora.getTime() && agregar({ id: 'sem-' + dia, t: ws, tipo: 'domingo', titulo: '¡Feliz domingo!', texto: 'No te olvides de registrar las ofrendas de Santa Cena y Escuela Dominical de hoy.', accion: 'agregar' })) nuevos++;
+      if (mes.on && ultimoDomingoDelMes(d) && ms > desde && ms <= ahora.getTime() && agregar({ id: 'mes-' + dia, t: ms, tipo: 'reporte', titulo: 'Reporte del mes', texto: 'Último domingo del mes. Generá y compartí el reporte de ofrendas con la iglesia.', accion: 'reportes' })) nuevos++;
+    }
+    try { localStorage.setItem(clave('check'), String(ahora.getTime())); } catch(e){}
+    return nuevos;
+  }
+
+  function noLeidos(){ return leer().filter(m => !m.leido).length; }
+  function pintarBadge(){
+    const b = document.getElementById('msg-badge'); if (!b) return;
+    const n = noLeidos();
+    b.textContent = n > 9 ? '9+' : String(n);
+    b.classList.toggle('hidden', n === 0);
+  }
+  function sonar(){
+    const btn = document.getElementById('btn-mensajes'); if (!btn) return;
+    btn.classList.remove('ring'); void btn.offsetWidth; btn.classList.add('ring');
+  }
+
+  window.mensajesSync = function(){
+    const nuevos = sincronizarRecordatorios();
+    pintarBadge();
+    if (nuevos || noLeidos()) setTimeout(sonar, 600);
+  };
+
+  function hace(t){
+    const s = Math.round((Date.now() - t) / 1000);
+    if (s < 60) return 'Hace un momento';
+    if (s < 3600) return `Hace ${Math.round(s / 60)} min`;
+    const d = new Date(t), hoy = new Date();
+    const hora = d.toLocaleTimeString('es-PY', { hour: '2-digit', minute: '2-digit' });
+    const ayer = new Date(hoy); ayer.setDate(hoy.getDate() - 1);
+    if (d.toDateString() === hoy.toDateString()) return 'Hoy, ' + hora;
+    if (d.toDateString() === ayer.toDateString()) return 'Ayer, ' + hora;
+    return d.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }) + ', ' + hora;
+  }
+
+  function pintarLista(){
+    const l = leer();
+    const cont = document.getElementById('msg-lista');
+    const n = l.filter(m => !m.leido).length;
+    document.getElementById('msg-sub').textContent = n ? `${n} sin leer` : 'Avisos y actividad reciente';
+    document.getElementById('msg-acciones').classList.toggle('hidden', !l.length && !R());
+    document.querySelector('#msg-acciones .btn-secondary').classList.toggle('hidden', !l.length);
+    document.getElementById('msg-config').classList.toggle('hidden', !R());
+    if (!l.length) {
+      cont.innerHTML = `<div class="msg-vacio"><iconify-icon icon="solar:check-circle-bold"></iconify-icon><p class="text-sm mt-2">No tenés mensajes</p><p class="text-xs mt-1">Acá vas a ver los recordatorios del domingo y la actividad de tus ofrendas.</p></div>`;
+      return;
+    }
+    cont.innerHTML = l.map((m, i) => `
+      <button class="msg-item${m.leido ? '' : ' nuevo'}" style="animation-delay:${Math.min(i, 8) * 40}ms" onclick="abrirMensaje('${esc(m.id)}')">
+        <div class="msg-ico"><iconify-icon icon="${ICO[m.tipo] || 'solar:info-circle-bold'}"></iconify-icon></div>
+        <div class="flex-1" style="min-width:0">
+          <p class="msg-tit">${m.leido ? '' : '<span class="msg-dot"></span>'}${esc(m.titulo)}</p>
+          <p class="msg-txt">${esc(m.texto)}</p>
+          <p class="msg-hora">${hace(m.t)}</p>
+        </div>
+      </button>`).join('');
+  }
+
+  window.abrirMensajes = function(){
+    sincronizarRecordatorios();
+    pintarLista();
+    const md = document.getElementById('msg-modal'); md.classList.remove('hidden'); md.classList.add('flex');
+    // Al abrir quedan como leídos (el punto se ve hasta cerrar)
+    escribir(leer().map(m => Object.assign(m, { leido: true })));
+    pintarBadge();
+  };
+  window.cerrarMensajes = function(){ const md = document.getElementById('msg-modal'); md.classList.add('hidden'); md.classList.remove('flex'); };
+  window.abrirMensaje = function(id){
+    const m = leer().find(x => x.id === id);
+    cerrarMensajes();
+    if (m && m.accion) showPage(m.accion);
+  };
+  window.borrarMensajes = function(){ escribir([]); pintarLista(); pintarBadge(); };
+
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && !document.getElementById('app-container').classList.contains('hidden')) mensajesSync();
+  });
 })();
 </script>
 </body>
