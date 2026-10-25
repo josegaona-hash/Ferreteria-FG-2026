@@ -142,7 +142,10 @@
                 
                 <div>
                     <label class="text-sm font-medium text-muted-foreground mb-2 block">Monto (Gs)</label>
-                    <input id="edit-monto" type="number" class="input-modern" min="0" step="1000">
+                    <div class="relative">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">₲</span>
+                        <input id="edit-monto" type="number" class="input-modern input-icono" placeholder="0" min="0" step="1000">
+                    </div>
                 </div>
                 
                 <div>
@@ -419,7 +422,7 @@
                             <label class="text-sm font-medium text-muted-foreground mb-3 block">Monto (Gs)</label>
                             <div class="relative">
                                 <span class="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">₲</span>
-                                <input id="monto-input" type="number" class="input-modern pl-10 text-2xl font-bold" placeholder="0" min="0" step="1000">
+                                <input id="monto-input" type="number" class="input-modern input-icono text-2xl font-bold" placeholder="0" min="0" step="1000">
                             </div>
                         </div>
 
@@ -565,29 +568,29 @@
                 </div>
             </div>
 
-            <!-- Navegación Inferior -->
-            <nav class="bottom-nav">
-                <div class="bottom-nav-inner">
-                    <span id="nav-indicator" class="nav-indicator" aria-hidden="true"></span>
-                    <button onclick="showPage('inicio')" class="nav-btn" data-page="inicio">
-                        <iconify-icon icon="solar:home-2-bold"></iconify-icon>
-                        <span>Inicio</span>
-                    </button>
-                    <button onclick="showPage('historial')" class="nav-btn" data-page="historial">
-                        <iconify-icon icon="solar:history-bold"></iconify-icon>
-                        <span>Historial</span>
-                    </button>
-                    <button onclick="showPage('agregar')" class="nav-btn" data-page="agregar">
-                        <iconify-icon icon="solar:add-circle-bold"></iconify-icon>
-                        <span>Agregar</span>
-                    </button>
-                    <button onclick="showPage('reportes')" class="nav-btn" data-page="reportes">
-                        <iconify-icon icon="solar:chart-2-bold"></iconify-icon>
-                        <span>Reportes</span>
-                    </button>
-                </div>
-            </nav>
         </div>
+        <!-- Navegación Inferior -->
+        <nav class="bottom-nav">
+            <div class="bottom-nav-inner">
+                <span id="nav-indicator" class="nav-indicator" aria-hidden="true"></span>
+                <button onclick="showPage('inicio')" class="nav-btn" data-page="inicio">
+                    <iconify-icon icon="solar:home-2-bold"></iconify-icon>
+                    <span>Inicio</span>
+                </button>
+                <button onclick="showPage('historial')" class="nav-btn" data-page="historial">
+                    <iconify-icon icon="solar:history-bold"></iconify-icon>
+                    <span>Historial</span>
+                </button>
+                <button onclick="showPage('agregar')" class="nav-btn" data-page="agregar">
+                    <iconify-icon icon="solar:add-circle-bold"></iconify-icon>
+                    <span>Agregar</span>
+                </button>
+                <button onclick="showPage('reportes')" class="nav-btn" data-page="reportes">
+                    <iconify-icon icon="solar:chart-2-bold"></iconify-icon>
+                    <span>Reportes</span>
+                </button>
+            </div>
+        </nav>
     </div>
 
     <script>
@@ -834,7 +837,6 @@
                 });
                 
                 showAlert('Ofrenda actualizada exitosamente', 'success');
-                registrarMensaje('editada', 'Ofrenda actualizada', `${tipoEditSeleccionado === 'santa-cena' ? 'Santa Cena' : 'Escuela Dominical'} · ${formatearGuaranies(monto)} · ${fechaCorta(fecha)}`, 'historial');
                 cerrarModalEdicion();
                 
                 // Recargar datos
@@ -947,8 +949,8 @@
             document.getElementById('app-container').classList.remove('hidden');
             showPage('inicio');
             loadTheme();
-            if (window.aperturaPendiente) aperturaPendiente();
             if (window.mensajesSync) mensajesSync();
+            if (window.aperturaPendiente) aperturaPendiente();
         }
 
         const ORDEN_PAGINAS = ['inicio', 'historial', 'agregar', 'reportes'];
@@ -1073,7 +1075,6 @@
                 });
                 
                 showAlert('Ofrenda guardada exitosamente', 'success');
-                registrarMensaje('guardada', 'Ofrenda registrada', `${tipoSeleccionado === 'santa-cena' ? 'Santa Cena' : 'Escuela Dominical'} · ${formatearGuaranies(monto)} · ${fechaCorta(fecha)}`, 'historial');
                 showPage('inicio');
             } catch (error) {
                 showAlert('Error al guardar: ' + error.message, 'error');
@@ -1275,7 +1276,6 @@
         }
 
         async function eliminarOfrenda(id) {
-            const o = ofrendas.find(x => x.id === id);
             showConfirm(
                 'Eliminar Ofrenda',
                 '¿Estás seguro de eliminar esta ofrenda? Esta acción no se puede deshacer.',
@@ -1283,7 +1283,6 @@
                     try {
                         await db.collection('ofrendas').doc(id).delete();
                         showAlert('Ofrenda eliminada', 'success');
-                        if (o) registrarMensaje('eliminada', 'Ofrenda eliminada', `${o.tipo === 'santa-cena' ? 'Santa Cena' : 'Escuela Dominical'} · ${formatearGuaranies(o.monto)} · ${fechaCorta(o.fecha)}`, 'historial');
                         cargarHistorial();
                         cargarDatosInicio();
                     } catch (error) {
@@ -1677,6 +1676,8 @@
                 const resumen = `Reporte financiero ${r.mesNombre} ${r.year}\nTotal: ${formatearGuaranies(r.total)}`;
                 if (!window.Android.compartirPdf(jsonReporte(r), nombreArchivoReporte(r), resumen)) {
                     showAlert('No se pudo generar el PDF', 'error');
+                } else {
+                    avisarReporte(r);
                 }
             } catch (e) { console.error(e); showAlert('No se pudo generar el PDF', 'error'); }
         }
@@ -1689,7 +1690,7 @@
                 const donde = window.Android.guardarPdf(jsonReporte(r), nombreArchivoReporte(r));
                 if (donde) {
                     showAlert(`PDF guardado en ${esc(donde)}`, 'success');
-                    registrarMensaje('pdf', 'Reporte guardado', `${r.mesNombre} ${r.year} · ${donde}`, 'reportes');
+                    avisarReporte(r, donde);
                 }
                 else showAlert('No se pudo guardar el PDF. Revisa el permiso de almacenamiento.', 'error');
             } catch (e) { console.error(e); showAlert('No se pudo guardar el PDF', 'error'); }
@@ -1702,8 +1703,10 @@
                 const texto = textoReporte(r);
                 if (window.Android && typeof window.Android.compartirTexto === 'function') {
                     if (!window.Android.compartirTexto(texto, 'whatsapp')) showAlert('No se pudo abrir WhatsApp', 'error');
+                    else avisarReporte(r);
                 } else {
                     window.open('https://wa.me/?text=' + encodeURIComponent(texto), '_blank');
+                    avisarReporte(r);
                 }
             } catch (e) { console.error(e); showAlert('No se pudo enviar el reporte', 'error'); }
         }
@@ -1725,9 +1728,23 @@
             try {
                 const r = await datosReporte();
                 if (!r) return;
-                if (await copiarTexto(textoReporte(r))) mostrarModalCopiado();
+                if (await copiarTexto(textoReporte(r))) { mostrarModalCopiado(); avisarReporte(r); }
                 else showAlert('No se pudo copiar el reporte', 'error');
             } catch (e) { console.error(e); showAlert('Error al generar el reporte', 'error'); }
+        }
+
+        // Notificación emergente "Reporte generado" (campanita + barra del celular)
+        function avisarReporte(r, donde) {
+            try {
+                const titulo = 'Reporte generado';
+                const texto = `El reporte de ${r.mesNombre} ${r.year} está listo.` + (donde ? ` Guardado en ${donde}.` : '');
+                const id = window.agregarNotificacion ? agregarNotificacion('reporte-listo', titulo, texto, 'reportes') : '';
+                const R = window.Recordatorios;
+                if (R && typeof R.notificarReporte === 'function') {
+                    const pdf = donde ? 'content://com.finanzas.iglesia.files/reports/' + encodeURIComponent(nombreArchivoReporte(r)) : '';
+                    R.notificarReporte(titulo, texto, id, pdf);
+                }
+            } catch (e) { console.error(e); }
         }
 
         // Compatibilidad con el nombre anterior
@@ -2176,12 +2193,17 @@
     R().probar(tipo);
   };
   window.aperturaPendiente = function(){
-    const mt = (location.hash || '').match(/abrir=(agregar|reportes)/);
+    const hash = location.hash || '';
+    const mt = hash.match(/abrir=(agregar|reportes)/);
     if (!mt) return;
+    const mm = hash.match(/msg=([^&]+)/);
+    const msgId = mm ? decodeURIComponent(mm[1]) : '';
     try { history.replaceState(null, '', location.pathname); } catch(e){}
+    // Tocar el aviso en la barra del celular cuenta como leído
+    if (window.leerNotificacionDesdeAviso) leerNotificacionDesdeAviso(msgId, mt[1]);
     setTimeout(() => {
       showPage(mt[1]);
-      if (mt[1] === 'reportes') showAlert('Último domingo del mes: generá y compartí el reporte', 'info');
+      if (mt[1] === 'reportes' && !msgId) showAlert('Último domingo del mes: generá y compartí el reporte', 'info');
     }, 350);
   };
   document.addEventListener('visibilitychange', () => {
@@ -2197,7 +2219,7 @@
             <div class="flex justify-between items-start" style="margin-bottom:1rem">
                 <div>
                     <h3 class="text-xl font-bold font-display">Mensajes</h3>
-                    <p id="msg-sub" class="text-xs text-muted-foreground">Avisos y actividad reciente</p>
+                    <p id="msg-sub" class="text-xs text-muted-foreground">Estás al día</p>
                 </div>
                 <button onclick="cerrarMensajes()" class="text-muted-foreground hover:text-foreground" aria-label="Cerrar">
                     <iconify-icon icon="solar:close-circle-bold" class="text-2xl"></iconify-icon>
@@ -2205,7 +2227,7 @@
             </div>
             <div id="msg-lista" class="msg-lista"></div>
             <div id="msg-acciones" class="flex gap-3" style="margin-top:1rem">
-                <button onclick="borrarMensajes()" class="btn-secondary flex-1">Borrar todo</button>
+                <button id="msg-todas" onclick="leerTodas()" class="btn-secondary flex-1">Marcar todas como leídas</button>
                 <button id="msg-config" onclick="cerrarMensajes();abrirRecordatorios()" class="btn-primary flex-1 hidden">Configurar</button>
             </div>
         </div>
@@ -2214,10 +2236,13 @@
 /* ===== Diseño a todo el ancho (con margen) ===== */
 .app-shell{width:100%;max-width:760px;margin:0 auto}
 .app-header{padding:calc(.9rem + env(safe-area-inset-top)) 1rem .9rem;border-radius:0 0 22px 22px}
-.app-main{padding:1.25rem .75rem calc(7rem + env(safe-area-inset-bottom))}
+.app-main{padding:1.25rem .75rem calc(7rem + env(safe-area-inset-bottom));overflow-x:clip}
+/* Nada debe desbordar a lo ancho: si no, el visor se ensancha y la barra fija se mueve */
+html,body{overflow-x:clip}
+.input-modern.input-icono{padding-left:2.75rem}
 
 /* ===== Barra inferior flotante con transiciones ===== */
-.bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:30;max-width:760px;margin:0 auto;padding:0 .625rem calc(.625rem + env(safe-area-inset-bottom));pointer-events:none}
+.bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:30;max-width:760px;margin:0 auto;padding:0 .625rem calc(.625rem + env(safe-area-inset-bottom));pointer-events:none;transform:translateZ(0);contain:layout}
 .bottom-nav-inner{pointer-events:auto;position:relative;display:grid;grid-template-columns:repeat(4,1fr);padding:6px;border-radius:24px;background:var(--bg-card);border:1px solid var(--border-light);box-shadow:0 14px 34px -14px rgba(0,0,0,.45)}
 .nav-indicator{position:absolute;top:6px;bottom:6px;left:6px;width:calc((100% - 12px) / 4);border-radius:18px;background:var(--accent-soft);transition:transform .5s cubic-bezier(.3,1.25,.4,1)}
 .nav-btn{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:.6rem .25rem;border-radius:18px;color:var(--text-muted);transition:color .3s ease}
@@ -2252,34 +2277,62 @@
 .msg-dot{width:7px;height:7px;border-radius:50%;background:var(--text-primary);flex-shrink:0}
 .msg-txt{font-size:.8rem;color:var(--text-secondary);margin-top:.15rem;line-height:1.35}
 .msg-hora{font-size:.7rem;color:var(--text-muted);margin-top:.3rem}
-.msg-vacio{text-align:center;padding:2rem 1rem;color:var(--text-muted)}
+.msg-item.saliendo{animation:none;overflow:hidden;opacity:0;transform:translateX(40px) scale(.96);height:0!important;padding-top:0;padding-bottom:0;margin-top:-.6rem;border-width:0;transition:opacity .22s ease,transform .3s cubic-bezier(.4,0,.2,1),height .3s cubic-bezier(.4,0,.2,1) .06s,padding .3s .06s,margin .3s .06s}
+.msg-vacio{animation:fxFade .3s ease;text-align:center;padding:2rem 1rem;color:var(--text-muted)}
 .msg-vacio iconify-icon{font-size:2.5rem}
 </style>
 <script>
 (function(){
   const R = () => window.Recordatorios;
   const MAX = 60;
-  const ICO = { domingo: 'solar:wineglass-bold', reporte: 'solar:chart-2-bold', guardada: 'solar:add-circle-bold', editada: 'solar:pen-bold', eliminada: 'solar:trash-bin-trash-bold', pdf: 'solar:file-download-bold' };
+  const ICO = { domingo: 'solar:wineglass-bold', reporte: 'solar:chart-2-bold', 'reporte-listo': 'solar:file-download-bold' };
   const uid = () => (typeof currentUser !== 'undefined' && currentUser && currentUser.uid) || 'anon';
   const clave = k => 'msgs:' + k + ':' + uid();
-  function leer(){ try { return JSON.parse(localStorage.getItem(clave('lista')) || '[]'); } catch(e){ return []; } }
-  function escribir(l){ try { localStorage.setItem(clave('lista'), JSON.stringify(l.slice(0, MAX))); } catch(e){} }
+  const leerJSON = (k, d) => { try { return JSON.parse(localStorage.getItem(clave(k)) || d); } catch(e){ return JSON.parse(d); } };
+  const guardarJSON = (k, v) => { try { localStorage.setItem(clave(k), JSON.stringify(v)); } catch(e){} };
+
+  // La lista guarda solo notificaciones sin leer; las leídas se borran y su id
+  // queda en "leidos" para que no vuelvan a aparecer.
+  const leer = () => leerJSON('lista', '[]').filter(m => !m.leido);
+  const escribir = l => guardarJSON('lista', l.slice(0, MAX));
+  const leidos = () => leerJSON('leidos', '[]');
 
   function agregar(m){
     const l = leer();
-    if (m.id && l.some(x => x.id === m.id)) return false;
-    l.unshift(Object.assign({ id: 'm' + Date.now() + Math.floor(Math.random()*1000), t: Date.now(), leido: false }, m));
+    if (m.id && (l.some(x => x.id === m.id) || leidos().indexOf(m.id) > -1)) return '';
+    const n = Object.assign({ id: 'm' + Date.now() + Math.floor(Math.random()*1000), t: Date.now() }, m);
+    l.unshift(n);
     l.sort((a, b) => b.t - a.t);
     escribir(l);
-    return true;
+    return n.id;
   }
 
-  window.registrarMensaje = function(tipo, titulo, texto, accion){
-    agregar({ tipo, titulo, texto, accion, leido: true });
+  function marcarLeida(id){
+    if (!id) return false;
+    const l = leer(), resto = l.filter(m => m.id !== id);
+    const lr = leidos(); if (lr.indexOf(id) < 0) { lr.unshift(id); guardarJSON('leidos', lr.slice(0, 200)); }
+    escribir(resto);
     pintarBadge();
+    return resto.length !== l.length;
+  }
+
+  window.agregarNotificacion = function(tipo, titulo, texto, accion){
+    const id = agregar({ tipo, titulo, texto, accion });
+    pintarBadge(); sonar();
+    if (!document.getElementById('msg-modal').classList.contains('hidden')) pintarLista();
+    return id;
   };
 
-  // Los recordatorios del domingo que ya sonaron se guardan como mensajes
+  // Aviso tocado en la barra del celular: con id exacto o, para los
+  // recordatorios del domingo, el más reciente de ese tipo.
+  window.leerNotificacionDesdeAviso = function(id, abrir){
+    if (id) { marcarLeida(id); return; }
+    const tipo = abrir === 'reportes' ? 'reporte' : 'domingo';
+    const m = leer().find(x => x.tipo === tipo);
+    if (m) marcarLeida(m.id);
+  };
+
+  // Los recordatorios del domingo que ya sonaron se agregan a la campanita
   function ultimoDomingoDelMes(d){ const s = new Date(d); s.setDate(s.getDate() + 7); return s.getMonth() !== d.getMonth(); }
   function sincronizarRecordatorios(){
     if (!R()) return 0;
@@ -2302,10 +2355,9 @@
     return nuevos;
   }
 
-  function noLeidos(){ return leer().filter(m => !m.leido).length; }
   function pintarBadge(){
     const b = document.getElementById('msg-badge'); if (!b) return;
-    const n = noLeidos();
+    const n = leer().length;
     b.textContent = n > 9 ? '9+' : String(n);
     b.classList.toggle('hidden', n === 0);
   }
@@ -2317,7 +2369,7 @@
   window.mensajesSync = function(){
     const nuevos = sincronizarRecordatorios();
     pintarBadge();
-    if (nuevos || noLeidos()) setTimeout(sonar, 600);
+    if (nuevos || leer().length) setTimeout(sonar, 600);
   };
 
   function hace(t){
@@ -2332,44 +2384,67 @@
     return d.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }) + ', ' + hora;
   }
 
+  const VACIO = `<div class="msg-vacio"><iconify-icon icon="solar:check-circle-bold"></iconify-icon><p class="text-sm mt-2">No tenés notificaciones nuevas</p></div>`;
+  function pintarEncabezado(n){
+    document.getElementById('msg-sub').textContent = n ? `${n} sin leer` : 'Estás al día';
+    document.getElementById('msg-todas').classList.toggle('hidden', !n);
+    document.getElementById('msg-config').classList.toggle('hidden', !R());
+    document.getElementById('msg-acciones').classList.toggle('hidden', !n && !R());
+  }
   function pintarLista(){
     const l = leer();
+    pintarEncabezado(l.length);
     const cont = document.getElementById('msg-lista');
-    const n = l.filter(m => !m.leido).length;
-    document.getElementById('msg-sub').textContent = n ? `${n} sin leer` : 'Avisos y actividad reciente';
-    document.getElementById('msg-acciones').classList.toggle('hidden', !l.length && !R());
-    document.querySelector('#msg-acciones .btn-secondary').classList.toggle('hidden', !l.length);
-    document.getElementById('msg-config').classList.toggle('hidden', !R());
-    if (!l.length) {
-      cont.innerHTML = `<div class="msg-vacio"><iconify-icon icon="solar:check-circle-bold"></iconify-icon><p class="text-sm mt-2">No tenés mensajes</p><p class="text-xs mt-1">Acá vas a ver los recordatorios del domingo y la actividad de tus ofrendas.</p></div>`;
-      return;
-    }
+    if (!l.length) { cont.innerHTML = VACIO; return; }
     cont.innerHTML = l.map((m, i) => `
-      <button class="msg-item${m.leido ? '' : ' nuevo'}" style="animation-delay:${Math.min(i, 8) * 40}ms" onclick="abrirMensaje('${esc(m.id)}')">
+      <button class="msg-item nuevo" data-id="${esc(m.id)}" style="animation-delay:${Math.min(i, 8) * 40}ms" onclick="abrirMensaje('${esc(m.id)}')">
         <div class="msg-ico"><iconify-icon icon="${ICO[m.tipo] || 'solar:info-circle-bold'}"></iconify-icon></div>
         <div class="flex-1" style="min-width:0">
-          <p class="msg-tit">${m.leido ? '' : '<span class="msg-dot"></span>'}${esc(m.titulo)}</p>
+          <p class="msg-tit"><span class="msg-dot"></span>${esc(m.titulo)}</p>
           <p class="msg-txt">${esc(m.texto)}</p>
           <p class="msg-hora">${hace(m.t)}</p>
         </div>
       </button>`).join('');
   }
 
+  // Animación de salida: se desvanece, se corre y colapsa su alto
+  function salir(el){
+    return new Promise(res => {
+      if (!el) return res();
+      el.style.height = el.offsetHeight + 'px';
+      void el.offsetHeight;
+      el.classList.add('saliendo');
+      setTimeout(res, 320);
+    });
+  }
+
   window.abrirMensajes = function(){
     sincronizarRecordatorios();
     pintarLista();
-    const md = document.getElementById('msg-modal'); md.classList.remove('hidden'); md.classList.add('flex');
-    // Al abrir quedan como leídos (el punto se ve hasta cerrar)
-    escribir(leer().map(m => Object.assign(m, { leido: true })));
     pintarBadge();
+    const md = document.getElementById('msg-modal'); md.classList.remove('hidden'); md.classList.add('flex');
   };
   window.cerrarMensajes = function(){ const md = document.getElementById('msg-modal'); md.classList.add('hidden'); md.classList.remove('flex'); };
-  window.abrirMensaje = function(id){
+  window.abrirMensaje = async function(id){
     const m = leer().find(x => x.id === id);
+    marcarLeida(id);
+    const el = document.querySelector(`.msg-item[data-id="${CSS.escape(id)}"]`);
+    if (el) el.style.pointerEvents = 'none';
+    pintarEncabezado(leer().length);
+    await salir(el);
+    if (el) el.remove();
+    if (!leer().length) document.getElementById('msg-lista').innerHTML = VACIO;
     cerrarMensajes();
     if (m && m.accion) showPage(m.accion);
   };
-  window.borrarMensajes = function(){ escribir([]); pintarLista(); pintarBadge(); };
+  window.leerTodas = async function(){
+    const items = Array.from(document.querySelectorAll('#msg-lista .msg-item'));
+    leer().forEach(m => marcarLeida(m.id));
+    pintarEncabezado(0);
+    items.forEach((el, i) => setTimeout(() => salir(el), i * 50));
+    await new Promise(r => setTimeout(r, 320 + items.length * 50));
+    pintarLista();
+  };
 
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden && !document.getElementById('app-container').classList.contains('hidden')) mensajesSync();
