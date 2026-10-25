@@ -12,6 +12,7 @@ Sistema de gestion completo para ferreteria, construido con Django 5.2 y Python 
 - Compras a proveedores
 - Control de caja (ingresos y egresos)
 - Reportes de ventas e inventario
+- Asistente de ventas con IA (Claude) que sugiere productos del inventario
 - Panel de administracion Django
 
 ## Instalacion rapida
@@ -65,4 +66,15 @@ DB_USER=postgres
 DB_PASSWORD=tu-contrasena
 DB_HOST=localhost
 DB_PORT=5432
+```
+
+## Asistente de ventas con IA
+El menu "Asistente IA" abre un chat donde se describe el trabajo o problema del cliente
+(ej. "tengo una fuga en el lavamanos") y el asistente busca en el inventario real y
+recomienda productos con precio y stock. Los productos sugeridos se pueden enviar
+directo a "Nueva Venta".
+
+Para activarlo, crea una clave en https://console.anthropic.com/ y agregala al archivo `.env`:
+```
+ANTHROPIC_API_KEY=sk-ant-...
 ```

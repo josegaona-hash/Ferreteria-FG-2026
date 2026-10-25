@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% block title %}Asistente IA{% endblock %}
+{% block nav_asistente %}active{% endblock %}
+{% block extra_css %}
+<style>
+.chat-wrap{display:flex;flex-direction:column;height:calc(100vh - var(--nh) - 150px);min-height:420px;}
+.chat-msgs{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:14px;}
+.msg{max-width:80%;padding:12px 16px;border-radius:12px;font-size:13px;line-height:1.6;white-space:pre-wrap;word-wrap:break-word;}
+.msg-user{align-self:flex-end;background:var(--accent);color:#000;border-bottom-right-radius:4px;}
+.msg-bot{align-self:flex-start;background:var(--hover);border:1px solid var(--border);border-bottom-left-radius:4px;}
+.msg-error{align-self:flex-start;background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.3);}
+.msg-bot strong{color:var(--accent);}
+.prod-cards{align-self:flex-start;display:flex;flex-wrap:wrap;gap:10px;max-width:90%;}
+.prod-card{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;min-width:190px;max-width:240px;display:flex;flex-direction:column;gap:4px;}
+.prod-card .pc-name{font-size:12px;font-weight:600;}
+.prod-card .pc-meta{font-size:11px;color:var(--muted);}
+.prod-card .pc-price{color:var(--accent);font-weight:700;font-size:13px;}
+.prod-card .btn{padding:5px 10px;font-size:11px;margin-top:4px;justify-content:center;}
+.prod-card.sin-stock{opacity:.6;}
+.chat-input{display:flex;gap:10px;padding:16px 20px;border-top:1px solid var(--border);}
+.chat-input textarea{flex:1;resize:none;height:46px;}
+.chat-hints{display:flex;flex-wrap:wrap;gap:8px;padding:0 20px 14px;}
+.hint{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:20px;padding:5px 12px;font-size:12px;cursor:pointer;font-family:'Poppins',sans-serif;}
+.hint:hover{color:var(--accent);border-color:var(--accent);}
+.typing{align-self:flex-start;color:var(--muted);font-size:12px;font-style:italic;}
+.cart-badge{background:var(--green);color:#fff;border-radius:10px;padding:1px 8px;font-size:11px;margin-left:4px;}
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1><i class="fas fa-robot"></i> Asistente de Ventas IA</h1>
+    <p>Describe el trabajo o problema del cliente y te sugiero productos del inventario</p>
+  </div>
+  <div style="display:flex;gap:8px;">
+    <button class="btn btn-ghost" onclick="nuevaConversacion()"><i class="fas fa-rotate"></i> Nueva conversación</button>
+    <a href="{% url 'ventas:pos' %}" class="btn btn-primary"><i class="fas fa-cash-register"></i> Ir a la venta <span class="cart-badge" id="cart-count" style="display:none;"></span></a>
+  </div>
+</div>
+<div class="card chat-wrap">
+  <div class="chat-msgs" id="chat-msgs">
+    <div class="msg msg-bot">¡Hola! Soy el asistente de Ferretería FG. Cuéntame qué necesita el cliente, por ejemplo: "tengo una fuga en el lavamanos" o "quiero pintar una pared exterior", y te digo qué productos tenemos.</div>
+  </div>
+  <div class="chat-hints" id="chat-hints">
+    <button class="hint">Tengo una fuga en el lavamanos</button>
+    <button class="hint">Quiero colgar un estante pesado en una pared de ladrillo</button>
+    <button class="hint">¿Qué necesito para pintar una habitación?</button>
+    <button class="hint">Cambiar un enchufe que no funciona</button>
+  </div>
+  <div class="chat-input">
+    <textarea id="chat-q" class="form-control" placeholder="Escribe la consulta del cliente..." maxlength="2000"></textarea>
+    <button class="btn btn-primary" id="chat-send" onclick="enviar()"><i class="fas fa-paper-plane"></i> Enviar</button>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+const csrf='{{ csrf_token }}';
+const CART_KEY='fg_carrito_asistente';
+let historial=[];
+let enviando=false;
+const msgs=document.getElementById('chat-msgs');
+const input=document.getElementById('chat-q');
+
+input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();enviar();}});
+document.querySelectorAll('.hint').forEach(b=>b.addEventListener('click',()=>{input.value=b.textContent;enviar();}));
+
+function esc(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function formatear(t){return esc(t).replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/^#+\s*/gm,'');}
+function scrollFin(){msgs.scrollTop=msgs.scrollHeight;}
+function agregarMsg(clase,html){const d=document.createElement('div');d.className='msg '+clase;d.innerHTML=html;msgs.appendChild(d);scrollFin();return d;}
+
+function agregarProductos(productos){
+  if(!productos.length)return;
+  const cont=document.createElement('div');cont.className='prod-cards';
+  productos.forEach(p=>{
+    const c=document.createElement('div');c.className='prod-card'+(p.stock>0?'':' sin-stock');
+    c.innerHTML=`<div class="pc-name">${esc(p.nombre)}</div>
+      <div class="pc-meta">${esc(p.categoria||'Sin categoría')} · Stock: ${p.stock} ${esc(p.unidad||'')}</div>
+      <div class="pc-price">Gs. ${p.precio.toLocaleString('es-PY')}</div>`;
+    const b=document.createElement('button');
+    if(p.stock>0){b.className='btn btn-success';b.innerHTML='<i class="fas fa-cart-plus"></i> Agregar a la venta';b.onclick=()=>agregarCarrito(p,b);}
+    else{b.className='btn btn-ghost';b.disabled=true;b.textContent='Sin stock';}
+    c.appendChild(b);cont.appendChild(c);
+  });
+  msgs.appendChild(cont);scrollFin();
+}
+
+function leerCarrito(){try{return JSON.parse(localStorage.getItem(CART_KEY))||[];}catch(e){return [];}}
+function agregarCarrito(p,btn){
+  const carrito=leerCarrito();
+  const ex=carrito.find(i=>i.id===p.id);
+  if(ex){if(ex.qty<p.stock)ex.qty++;}else carrito.push({id:p.id,nombre:p.nombre,precio:p.precio,stock:p.stock,qty:1});
+  try{localStorage.setItem(CART_KEY,JSON.stringify(carrito));}catch(e){alert('No se pudo guardar el producto');return;}
+  btn.innerHTML='<i class="fas fa-check"></i> Agregado';setTimeout(()=>{btn.innerHTML='<i class="fas fa-cart-plus"></i> Agregar a la venta';},1200);
+  actualizarContador();
+}
+function actualizarContador(){
+  const n=leerCarrito().reduce((a,i)=>a+i.qty,0);const el=document.getElementById('cart-count');
+  el.style.display=n?'inline':'none';el.textContent=n;
+}
+
+async function enviar(){
+  const q=input.value.trim();
+  if(!q||enviando)return;
+  enviando=true;document.getElementById('chat-send').disabled=true;
+  document.getElementById('chat-hints').style.display='none';
+  input.value='';
+  agregarMsg('msg-user',esc(q));
+  historial.push({role:'user',content:q});
+  const typing=document.createElement('div');typing.className='typing';typing.innerHTML='<i class="fas fa-spinner fa-spin"></i> Buscando en el inventario...';
+  msgs.appendChild(typing);scrollFin();
+  try{
+    const res=await fetch('{% url "asistente:preguntar" %}',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':csrf},body:JSON.stringify({mensajes:historial})});
+    const data=await res.json();
+    typing.remove();
+    if(data.error){historial.pop();agregarMsg('msg-error','<i class="fas fa-triangle-exclamation"></i> '+esc(data.error));}
+    else{historial.push({role:'assistant',content:data.respuesta});agregarMsg('msg-bot',formatear(data.respuesta));agregarProductos(data.productos||[]);}
+  }catch(e){
+    typing.remove();historial.pop();
+    agregarMsg('msg-error','<i class="fas fa-triangle-exclamation"></i> No se pudo conectar con el servidor.');
+  }
+  enviando=false;document.getElementById('chat-send').disabled=false;input.focus();
+}
+
+function nuevaConversacion(){
+  historial=[];
+  msgs.querySelectorAll('.msg,.prod-cards').forEach((el,i)=>{if(i>0)el.remove();});
+  document.getElementById('chat-hints').style.display='flex';
+}
+actualizarContador();
+</script>
+{% endblock %}

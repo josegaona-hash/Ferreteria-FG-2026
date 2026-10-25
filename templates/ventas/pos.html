@@ -123,5 +123,12 @@ async function finalizarVenta(){
   else alert('Error: '+data.error);
 }
 function limpiarVenta(){carrito=[];document.getElementById('pos-rec').value='';renderCart();}
+// Productos agregados desde el Asistente IA
+(function(){
+  let pend=[];
+  try{pend=JSON.parse(localStorage.getItem('fg_carrito_asistente'))||[];localStorage.removeItem('fg_carrito_asistente');}catch(e){}
+  pend.forEach(p=>{if(p.stock>0)carrito.push({id:p.id,nombre:p.nombre,precio:p.precio,stock:p.stock,qty:Math.min(p.qty,p.stock)});});
+  if(pend.length)renderCart();
+})();
 </script>
 {% endblock %}

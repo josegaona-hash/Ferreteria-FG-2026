@@ -47,6 +47,9 @@
     <a href="{% url 'ventas:venta_list' %}" class="sidebar-item {% block nav_ventas %}{% endblock %}">
       <span class="si"><i class="fas fa-receipt"></i></span> Historial Ventas
     </a>
+    <a href="{% url 'asistente:chat' %}" class="sidebar-item {% block nav_asistente %}{% endblock %}">
+      <span class="si"><i class="fas fa-robot"></i></span> Asistente IA
+    </a>
 
     <div class="sidebar-section">Gestión</div>
     <a href="{% url 'inventario:producto_list' %}" class="sidebar-item {% block nav_inventario %}{% endblock %}">
